@@ -29,8 +29,8 @@ class HomeView extends GetView<HomeController> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Theme.of(context).colorScheme.primary.withOpacity(0.1),
-              Theme.of(context).colorScheme.secondary.withOpacity(0.1),
+              Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+              Theme.of(context).colorScheme.secondary.withValues(alpha: 0.1),
             ],
           ),
         ),
@@ -52,7 +52,7 @@ class HomeView extends GetView<HomeController> {
                     fontSize: 18,
                     color: Theme.of(
                       context,
-                    ).colorScheme.onSurface.withOpacity(0.7),
+                    ).colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                 ),
                 const SizedBox(height: 40),
@@ -133,10 +133,15 @@ class HomeView extends GetView<HomeController> {
     String label,
     IconData icon,
   ) {
+    final Color primaryColor =
+        Theme.of(Get.context!).brightness == Brightness.dark
+        ? const Color(0xFF6A0DAD)
+        : Theme.of(Get.context!).colorScheme.primary;
+
     return Expanded(
       child: Card(
         color: controller.selectedType.value == type
-            ? Theme.of(Get.context!).colorScheme.primary
+            ? primaryColor
             : Theme.of(Get.context!).cardColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         elevation: 4,
@@ -152,7 +157,7 @@ class HomeView extends GetView<HomeController> {
                   size: 40,
                   color: controller.selectedType.value == type
                       ? Colors.white
-                      : Theme.of(Get.context!).colorScheme.primary,
+                      : primaryColor,
                 ),
                 const SizedBox(height: 12),
                 Text(
@@ -174,7 +179,7 @@ class HomeView extends GetView<HomeController> {
                         ? Colors.white70
                         : Theme.of(
                             Get.context!,
-                          ).colorScheme.onSurface.withOpacity(0.7),
+                          ).colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                 ),
               ],
@@ -186,6 +191,11 @@ class HomeView extends GetView<HomeController> {
   }
 
   Widget _buildDownloadButton() {
+    final Color primaryColor =
+        Theme.of(Get.context!).brightness == Brightness.dark
+        ? const Color(0xFF6A0DAD)
+        : Theme.of(Get.context!).colorScheme.primary;
+
     return Obx(
       () => SizedBox(
         width: double.infinity,
@@ -199,7 +209,7 @@ class HomeView extends GetView<HomeController> {
               borderRadius: BorderRadius.circular(16),
             ),
             elevation: 6,
-            backgroundColor: Theme.of(Get.context!).colorScheme.primary,
+            backgroundColor: primaryColor,
             foregroundColor: Colors.white,
           ),
           child: controller.isLoading.value
@@ -214,6 +224,11 @@ class HomeView extends GetView<HomeController> {
   }
 
   Widget _buildProgressSection() {
+    final Color primaryColor =
+        Theme.of(Get.context!).brightness == Brightness.dark
+        ? const Color(0xFF6A0DAD)
+        : Theme.of(Get.context!).colorScheme.primary;
+
     return Obx(
       () => Column(
         children: [
@@ -223,7 +238,7 @@ class HomeView extends GetView<HomeController> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w500,
-                color: Theme.of(Get.context!).colorScheme.primary,
+                color: primaryColor,
               ),
             ),
           const SizedBox(height: 12),
@@ -231,12 +246,8 @@ class HomeView extends GetView<HomeController> {
             LinearProgressIndicator(
               value: controller.downloadProgress.value / 100,
               borderRadius: BorderRadius.circular(12),
-              backgroundColor: Theme.of(
-                Get.context!,
-              ).colorScheme.primary.withOpacity(0.2),
-              valueColor: AlwaysStoppedAnimation<Color>(
-                Theme.of(Get.context!).colorScheme.primary,
-              ),
+              backgroundColor: primaryColor.withValues(alpha: 0.2),
+              valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
               minHeight: 12,
             ),
         ],
@@ -245,6 +256,11 @@ class HomeView extends GetView<HomeController> {
   }
 
   Widget _buildSingleFormatSection() {
+    final Color primaryColor =
+        Theme.of(Get.context!).brightness == Brightness.dark
+        ? const Color(0xFF6A0DAD)
+        : Theme.of(Get.context!).colorScheme.primary;
+
     return Obx(() {
       // Additional null check inside the Obx builder
       if (!controller.showFormats.value ||
@@ -286,10 +302,7 @@ class HomeView extends GetView<HomeController> {
                       ),
                       Text(
                         response.type.toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Theme.of(Get.context!).colorScheme.primary,
-                        ),
+                        style: TextStyle(fontSize: 16, color: primaryColor),
                       ),
                     ],
                   ),
@@ -382,6 +395,11 @@ class HomeView extends GetView<HomeController> {
   }
 
   Widget _buildFormatsSection() {
+    final Color primaryColor =
+        Theme.of(Get.context!).brightness == Brightness.dark
+        ? const Color(0xFF6A0DAD)
+        : Theme.of(Get.context!).colorScheme.primary;
+
     return Obx(() {
       // Additional null check inside the Obx builder
       if (!controller.showFormats.value ||
@@ -391,6 +409,8 @@ class HomeView extends GetView<HomeController> {
       }
 
       final response = controller.response.value!;
+      // Sort formats by quality using the controller method
+      final sortedFormats = controller.sortFormatsByQuality(response.formats);
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -403,9 +423,9 @@ class HomeView extends GetView<HomeController> {
           ListView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: response.formats.length,
+            itemCount: sortedFormats.length,
             itemBuilder: (context, index) {
-              final format = response.formats[index];
+              final format = sortedFormats[index];
               final downloadUrl = 'https://${format.host}/${format.filename}';
 
               return Card(
@@ -422,8 +442,9 @@ class HomeView extends GetView<HomeController> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
+                          // Process format label to make it more user-friendly
                           Text(
-                            format.label,
+                            controller.processFormatLabel(format.label),
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -431,10 +452,7 @@ class HomeView extends GetView<HomeController> {
                           ),
                           Text(
                             response.type.toUpperCase(),
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
+                            style: TextStyle(fontSize: 16, color: primaryColor),
                           ),
                         ],
                       ),
@@ -529,6 +547,11 @@ class HomeView extends GetView<HomeController> {
     required String label,
     required VoidCallback onPressed,
   }) {
+    final Color primaryColor =
+        Theme.of(Get.context!).brightness == Brightness.dark
+        ? const Color(0xFF6A0DAD)
+        : Theme.of(Get.context!).colorScheme.primary;
+
     return ElevatedButton.icon(
       onPressed: onPressed,
       icon: Icon(icon, size: 20),
@@ -537,6 +560,8 @@ class HomeView extends GetView<HomeController> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         elevation: 2,
+        backgroundColor: primaryColor,
+        foregroundColor: Colors.white,
         minimumSize: const Size(100, 40),
       ),
     );
@@ -554,7 +579,7 @@ class HomeView extends GetView<HomeController> {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -607,6 +632,11 @@ class HomeView extends GetView<HomeController> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
+                    backgroundColor:
+                        Theme.of(Get.context!).brightness == Brightness.dark
+                        ? const Color(0xFF6A0DAD)
+                        : Theme.of(Get.context!).colorScheme.primary,
+                    foregroundColor: Colors.white,
                   ),
                 ),
               ),

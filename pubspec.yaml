@@ -111,3 +111,11 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+# Permission configuration for Android
+permission_handler:
+  android:
+    permissions:
+      - "android.permission.READ_EXTERNAL_STORAGE"
+      - "android.permission.WRITE_EXTERNAL_STORAGE"
+      - "android.permission.POST_NOTIFICATIONS"

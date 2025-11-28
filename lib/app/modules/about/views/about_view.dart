@@ -14,8 +14,8 @@ class AboutView extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Theme.of(context).colorScheme.primary.withOpacity(0.1),
-              Theme.of(context).colorScheme.secondary.withOpacity(0.1),
+              Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+              Theme.of(context).colorScheme.secondary.withValues(alpha: 0.1),
             ],
           ),
         ),
@@ -42,7 +42,7 @@ class AboutView extends StatelessWidget {
                     fontSize: 16,
                     color: Theme.of(
                       context,
-                    ).colorScheme.onSurface.withOpacity(0.7),
+                    ).colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -71,7 +71,17 @@ class AboutView extends StatelessWidget {
                   onTap: () async {
                     final Uri telegramUrl = Uri.parse('https://t.me/h3dev');
                     if (await canLaunchUrl(telegramUrl)) {
-                      await launchUrl(telegramUrl);
+                      await launchUrl(
+                        telegramUrl,
+                        mode: LaunchMode.externalApplication,
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Could not open Telegram. Please make sure Telegram is installed.'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
                     }
                   },
                 ),
@@ -86,6 +96,14 @@ class AboutView extends StatelessWidget {
                     );
                     if (await canLaunchUrl(emailUrl)) {
                       await launchUrl(emailUrl);
+                    } else {
+                      // Show error message if email app is not available
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('No email app found. Please install an email app to send emails.'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
                     }
                   },
                 ),
@@ -99,7 +117,17 @@ class AboutView extends StatelessWidget {
                       'https://instagram.com/h3dev.pira',
                     );
                     if (await canLaunchUrl(instagramUrl)) {
-                      await launchUrl(instagramUrl);
+                      await launchUrl(
+                        instagramUrl,
+                        mode: LaunchMode.externalApplication,
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Could not open Instagram. Please make sure Instagram is installed.'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
                     }
                   },
                 ),
