@@ -10,7 +10,7 @@ class HomeView extends GetView<HomeController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('X Downloader'),
+        title: const Text('X2Local'),
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.transparent,
