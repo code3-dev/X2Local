@@ -319,20 +319,25 @@ class HomeView extends GetView<HomeController> {
                               child: _buildActionButton(
                                 icon: Icons.download,
                                 label: 'Download',
-                                onPressed:
-                                    controller.downloadInAppForSingleFormat,
+                                onPressed: controller.isWeb
+                                    ? () => controller.downloadInBrowserDirect(
+                                        'https://${response.host}/${response.filename}',
+                                      )
+                                    : controller.downloadInAppForSingleFormat,
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildActionButton(
-                                icon: Icons.open_in_browser,
-                                label: 'Open',
-                                onPressed: () => controller.downloadInBrowser(
-                                  'https://${response.host}/${response.filename}',
+                            if (!controller.isWeb) ...[
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _buildActionButton(
+                                  icon: Icons.open_in_browser,
+                                  label: 'Open',
+                                  onPressed: () => controller.downloadInBrowser(
+                                    'https://${response.host}/${response.filename}',
+                                  ),
                                 ),
                               ),
-                            ),
+                            ],
                             const SizedBox(width: 12),
                             Expanded(
                               child: _buildActionButton(
@@ -354,21 +359,26 @@ class HomeView extends GetView<HomeController> {
                               child: _buildActionButton(
                                 icon: Icons.download,
                                 label: 'Download',
-                                onPressed:
-                                    controller.downloadInAppForSingleFormat,
+                                onPressed: controller.isWeb
+                                    ? () => controller.downloadInBrowserDirect(
+                                        'https://${response.host}/${response.filename}',
+                                      )
+                                    : controller.downloadInAppForSingleFormat,
                               ),
                             ),
-                            const SizedBox(height: 12),
-                            SizedBox(
-                              width: double.infinity,
-                              child: _buildActionButton(
-                                icon: Icons.open_in_browser,
-                                label: 'Open',
-                                onPressed: () => controller.downloadInBrowser(
-                                  'https://${response.host}/${response.filename}',
+                            if (!controller.isWeb) ...[
+                              const SizedBox(height: 12),
+                              SizedBox(
+                                width: double.infinity,
+                                child: _buildActionButton(
+                                  icon: Icons.open_in_browser,
+                                  label: 'Open',
+                                  onPressed: () => controller.downloadInBrowser(
+                                    'https://${response.host}/${response.filename}',
+                                  ),
                                 ),
                               ),
-                            ),
+                            ],
                             const SizedBox(height: 12),
                             SizedBox(
                               width: double.infinity,
@@ -469,19 +479,26 @@ class HomeView extends GetView<HomeController> {
                                   child: _buildActionButton(
                                     icon: Icons.download,
                                     label: 'Download',
-                                    onPressed: () =>
-                                        controller.downloadInApp(format),
+                                    onPressed: controller.isWeb
+                                        ? () => controller
+                                              .downloadInBrowserDirect(
+                                                downloadUrl,
+                                              )
+                                        : () =>
+                                              controller.downloadInApp(format),
                                   ),
                                 ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: _buildActionButton(
-                                    icon: Icons.open_in_browser,
-                                    label: 'Open',
-                                    onPressed: () => controller
-                                        .downloadInBrowser(downloadUrl),
+                                if (!controller.isWeb) ...[
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: _buildActionButton(
+                                      icon: Icons.open_in_browser,
+                                      label: 'Open',
+                                      onPressed: () => controller
+                                          .downloadInBrowser(downloadUrl),
+                                    ),
                                   ),
-                                ),
+                                ],
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: _buildActionButton(
@@ -502,20 +519,27 @@ class HomeView extends GetView<HomeController> {
                                   child: _buildActionButton(
                                     icon: Icons.download,
                                     label: 'Download',
-                                    onPressed: () =>
-                                        controller.downloadInApp(format),
+                                    onPressed: controller.isWeb
+                                        ? () => controller
+                                              .downloadInBrowserDirect(
+                                                downloadUrl,
+                                              )
+                                        : () =>
+                                              controller.downloadInApp(format),
                                   ),
                                 ),
-                                const SizedBox(height: 12),
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: _buildActionButton(
-                                    icon: Icons.open_in_browser,
-                                    label: 'Open',
-                                    onPressed: () => controller
-                                        .downloadInBrowser(downloadUrl),
+                                if (!controller.isWeb) ...[
+                                  const SizedBox(height: 12),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: _buildActionButton(
+                                      icon: Icons.open_in_browser,
+                                      label: 'Open',
+                                      onPressed: () => controller
+                                          .downloadInBrowser(downloadUrl),
+                                    ),
                                   ),
-                                ),
+                                ],
                                 const SizedBox(height: 12),
                                 SizedBox(
                                   width: double.infinity,

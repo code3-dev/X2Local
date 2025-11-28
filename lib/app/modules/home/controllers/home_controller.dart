@@ -12,6 +12,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
+// Import for web detection
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 // Import Android download service for native downloads
 import 'package:x2local/app/data/services/android_download_service.dart';
 
@@ -509,5 +512,22 @@ class HomeController extends GetxController {
     }
     // Return 0 if unable to extract resolution
     return 0;
+  }
+
+  /// Check if the app is running on web platform
+  bool get isWeb => kIsWeb;
+
+  /// Download file directly in browser by opening URL
+  Future<void> downloadInBrowserDirect(String downloadUrl) async {
+    try {
+      final uri = Uri.parse(downloadUrl);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        Get.snackbar('Error', 'Could not launch URL');
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to open browser: ${e.toString()}');
+    }
   }
 }
