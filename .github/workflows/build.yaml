@@ -197,7 +197,7 @@ jobs:
             -n x2local \
             -v $VERSION \
             --description "X2Local Application" \
-            --url "https://github.com/code3-dev/X2Local-GUI" \
+            --url "https://github.com/code3-dev/X2Local" \
             --maintainer "Hossein Pira" \
             --vendor "X2Local" \
             --license "MIT" \
@@ -213,7 +213,7 @@ jobs:
             -n x2local \
             -v $VERSION \
             --description "X2Local" \
-            --url "https://github.com/code3-dev/X2Local-GUI" \
+            --url "https://github.com/code3-dev/X2Local" \
             --maintainer "Hossein Pira" \
             --vendor "X2Local" \
             --license "MIT" \
@@ -468,16 +468,16 @@ jobs:
             
             | Platform | Architecture | Download |
             |----------|-------------|----------|
-            | Windows  | x64 (Installer) | <a href="https://github.com/code3-dev/X2Local-GUI/releases/download/${{ env.TAG_NAME }}/x2local-setup.exe"><img src="https://img.shields.io/badge/Windows-Installer-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows Installer"></a> |
-            | Windows  | x64 (Portable ZIP) | <a href="https://github.com/code3-dev/X2Local-GUI/releases/download/${{ env.TAG_NAME }}/X2Local-windows-x64-portable.zip"><img src="https://img.shields.io/badge/Windows-x64--Portable--ZIP-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows x64 Portable ZIP"></a> |
-            | macOS    | Universal (.dmg) | <a href="https://github.com/code3-dev/X2Local-GUI/releases/download/${{ env.TAG_NAME }}/X2Local-macos-universal.dmg"><img src="https://img.shields.io/badge/macOS-Universal-000000?style=for-the-badge&logo=apple&logoColor=white" alt="macOS Universal DMG"></a> |
-            | macOS    | Universal (.zip) | <a href="https://github.com/code3-dev/X2Local-GUI/releases/download/${{ env.TAG_NAME }}/X2Local-macos-universal.zip"><img src="https://img.shields.io/badge/macOS-Universal-000000?style=for-the-badge&logo=apple&logoColor=white" alt="macOS Universal ZIP"></a> |
-            | Linux    | x64 (tar.gz) | <a href="https://github.com/code3-dev/X2Local-GUI/releases/download/${{ env.TAG_NAME }}/X2Local-linux.tar.gz"><img src="https://img.shields.io/badge/Linux-tar.gz-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Linux tar.gz"></a> |
-            | Linux    | x64 (AppImage) | <a href="https://github.com/code3-dev/X2Local-GUI/releases/download/${{ env.TAG_NAME }}/X2Local-${{ env.VERSION }}-linux.AppImage"><img src="https://img.shields.io/badge/Linux-AppImage-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Linux AppImage"></a> |
-            | Linux    | x64 (.deb) | <a href="https://github.com/code3-dev/X2Local-GUI/releases/download/${{ env.TAG_NAME }}/x2local.deb"><img src="https://img.shields.io/badge/Linux-.deb-FCC624?style=for-the-badge&logo=debian&logoColor=white" alt="Linux .deb"></a> |
-            | Linux    | x64 (.rpm) | <a href="https://github.com/code3-dev/X2Local-GUI/releases/download/${{ env.TAG_NAME }}/x2local.rpm"><img src="https://img.shields.io/badge/Linux-.rpm-FCC624?style=for-the-badge&logo=redhat&logoColor=white" alt="Linux .rpm"></a> |
-            | Android  | Universal | <a href="https://github.com/code3-dev/X2Local-GUI/releases/download/${{ env.TAG_NAME }}/x2local-universal.apk"><img src="https://img.shields.io/badge/Android-Universal-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android Universal"></a> |
-            | Android  | armeabi-v7a | <a href="https://github.com/code3-dev/X2Local-GUI/releases/download/${{ env.TAG_NAME }}/x2local-armeabi-v7a.apk"><img src="https://img.shields.io/badge/Android-armeabi--v7a-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android armeabi-v7a"></a> |
-            | Android  | arm64-v8a | <a href="https://github.com/code3-dev/X2Local-GUI/releases/download/${{ env.TAG_NAME }}/x2local-arm64-v8a.apk"><img src="https://img.shields.io/badge/Android-arm64--v8a-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android arm64-v8a"></a> |
-            | Android  | x86_64 | <a href="https://github.com/code3-dev/X2Local-GUI/releases/download/${{ env.TAG_NAME }}/x2local-x86_64.apk"><img src="https://img.shields.io/badge/Android-x86_64-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android x86_64"></a> |
-            | Web      | All browsers | <a href="https://github.com/code3-dev/X2Local-GUI/releases/download/${{ env.TAG_NAME }}/X2Local-web.zip"><img src="https://img.shields.io/badge/Web-ZIP-FFCA28?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Web ZIP"></a> |
+            | Windows  | x64 (Installer) | <a href="https://github.com/code3-dev/X2Local/releases/download/${{ env.TAG_NAME }}/x2local-setup.exe"><img src="https://img.shields.io/badge/Windows-Installer-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows Installer"></a> |
+            | Windows  | x64 (Portable ZIP) | <a href="https://github.com/code3-dev/X2Local/releases/download/${{ env.TAG_NAME }}/X2Local-windows-x64-portable.zip"><img src="https://img.shields.io/badge/Windows-x64--Portable--ZIP-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows x64 Portable ZIP"></a> |
+            | macOS    | Universal (.dmg) | <a href="https://github.com/code3-dev/X2Local/releases/download/${{ env.TAG_NAME }}/X2Local-macos-universal.dmg"><img src="https://img.shields.io/badge/macOS-Universal-000000?style=for-the-badge&logo=apple&logoColor=white" alt="macOS Universal DMG"></a> |
+            | macOS    | Universal (.zip) | <a href="https://github.com/code3-dev/X2Local/releases/download/${{ env.TAG_NAME }}/X2Local-macos-universal.zip"><img src="https://img.shields.io/badge/macOS-Universal-000000?style=for-the-badge&logo=apple&logoColor=white" alt="macOS Universal ZIP"></a> |
+            | Linux    | x64 (tar.gz) | <a href="https://github.com/code3-dev/X2Local/releases/download/${{ env.TAG_NAME }}/X2Local-linux.tar.gz"><img src="https://img.shields.io/badge/Linux-tar.gz-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Linux tar.gz"></a> |
+            | Linux    | x64 (AppImage) | <a href="https://github.com/code3-dev/X2Local/releases/download/${{ env.TAG_NAME }}/X2Local-${{ env.VERSION }}-linux.AppImage"><img src="https://img.shields.io/badge/Linux-AppImage-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Linux AppImage"></a> |
+            | Linux    | x64 (.deb) | <a href="https://github.com/code3-dev/X2Local/releases/download/${{ env.TAG_NAME }}/x2local.deb"><img src="https://img.shields.io/badge/Linux-.deb-FCC624?style=for-the-badge&logo=debian&logoColor=white" alt="Linux .deb"></a> |
+            | Linux    | x64 (.rpm) | <a href="https://github.com/code3-dev/X2Local/releases/download/${{ env.TAG_NAME }}/x2local.rpm"><img src="https://img.shields.io/badge/Linux-.rpm-FCC624?style=for-the-badge&logo=redhat&logoColor=white" alt="Linux .rpm"></a> |
+            | Android  | Universal | <a href="https://github.com/code3-dev/X2Local/releases/download/${{ env.TAG_NAME }}/x2local-universal.apk"><img src="https://img.shields.io/badge/Android-Universal-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android Universal"></a> |
+            | Android  | armeabi-v7a | <a href="https://github.com/code3-dev/X2Local/releases/download/${{ env.TAG_NAME }}/x2local-armeabi-v7a.apk"><img src="https://img.shields.io/badge/Android-armeabi--v7a-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android armeabi-v7a"></a> |
+            | Android  | arm64-v8a | <a href="https://github.com/code3-dev/X2Local/releases/download/${{ env.TAG_NAME }}/x2local-arm64-v8a.apk"><img src="https://img.shields.io/badge/Android-arm64--v8a-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android arm64-v8a"></a> |
+            | Android  | x86_64 | <a href="https://github.com/code3-dev/X2Local/releases/download/${{ env.TAG_NAME }}/x2local-x86_64.apk"><img src="https://img.shields.io/badge/Android-x86_64-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android x86_64"></a> |
+            | Web      | All browsers | <a href="https://github.com/code3-dev/X2Local/releases/download/${{ env.TAG_NAME }}/X2Local-web.zip"><img src="https://img.shields.io/badge/Web-ZIP-FFCA28?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Web ZIP"></a> |
