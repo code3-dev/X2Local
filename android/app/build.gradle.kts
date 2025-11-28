@@ -1,7 +1,17 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
+}
+
+// Load keystore properties
+val keystorePropertiesFile = rootProject.file("key.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
 android {
@@ -18,6 +28,15 @@ android {
         jvmTarget = "11"
     }
 
+    signingConfigs {
+        create("release") {
+            keyAlias = keystoreProperties.getProperty("keyAlias") ?: "androiddebugkey"
+            keyPassword = keystoreProperties.getProperty("keyPassword") ?: "android"
+            storeFile = file(keystoreProperties.getProperty("storeFile") ?: "keystore/debug.keystore")
+            storePassword = keystoreProperties.getProperty("storePassword") ?: "android"
+        }
+    }
+
     defaultConfig {
         applicationId = "com.pira.x2local"
         minSdk = 24
@@ -27,8 +46,19 @@ android {
     }
 
     buildTypes {
-        release {
-            signingConfig = signingConfigs.getByName("debug")
+        getByName("release") {
+            val storeFilePath = keystoreProperties.getProperty("storeFile") ?: "keystore/debug.keystore"
+            signingConfig = if (file(storeFilePath).exists()) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
+            isMinifyEnabled = true
+            isShrinkResources = true
+            ndk {
+                abiFilters.addAll(listOf("x86_64", "armeabi-v7a", "arm64-v8a"))
+                debugSymbolLevel = "FULL"
+            }
         }
     }
 }

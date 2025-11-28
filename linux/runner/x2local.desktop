@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=X2Local
+Comment=X (Twitter) video and audio downloader
+Exec=x2local
+Icon=x2local
+Terminal=false
+Type=Application
+Categories=Utility;

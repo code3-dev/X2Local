@@ -1,0 +1,483 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to create release for (e.g., v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        architecture: [x64]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build Windows (${{ matrix.architecture }})
+        run: flutter build windows --release
+
+      - name: Install Inno Setup
+        run: |
+          choco install innosetup -y
+        shell: cmd
+
+      - name: Create Windows installer
+        run: |
+          cd windows\installer
+          ISCC.exe X2Local.iss
+        shell: cmd
+
+      - name: Package Windows build
+        run: |
+          mkdir -p release
+          copy windows\installer\x2local-setup.exe release\
+        shell: cmd
+
+      - name: Create Windows Portable ZIP
+        run: |
+          mkdir -p release\portable
+          xcopy build\windows\${{ matrix.architecture }}\runner\Release\* release\portable\ /E /I
+          cd release
+          7z a -tzip X2Local-windows-${{ matrix.architecture }}-portable.zip portable\
+        shell: cmd
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build-${{ matrix.architecture }}
+          path: |
+            release/x2local-setup.exe
+            release/X2Local-windows-${{ matrix.architecture }}-portable.zip
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Enable macOS desktop support
+        run: flutter config --enable-macos-desktop
+
+      - name: Build macOS
+        run: flutter build macos --release --no-tree-shake-icons
+
+      - name: Create Universal Binary
+        run: |
+          # Create a universal binary that works on both Intel and Apple Silicon
+          mkdir -p release
+          
+          # The built app is already a universal binary by default
+          # Copy the app bundle to a temporary location
+          TEMP_DIR=$(mktemp -d)
+          cp -R build/macos/Build/Products/Release/x2local.app "$TEMP_DIR/"
+          
+          # Create the DMG using create-dmg tool
+          brew install create-dmg
+          
+          create-dmg \
+            --volname "X2Local Installer" \
+            --window-pos 200 120 \
+            --window-size 800 400 \
+            --icon-size 100 \
+            --app-drop-link 600 185 \
+            "release/X2Local-macos-universal.dmg" \
+            "$TEMP_DIR/"
+          
+          # Clean up
+          rm -rf "$TEMP_DIR"
+
+      - name: Create ZIP
+        run: |
+          # Create a ZIP archive of the app bundle
+          mkdir -p release
+          zip -r release/X2Local-macos-universal.zip build/macos/Build/Products/Release/x2local.app
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-build
+          path: |
+            release/X2Local-macos-universal.dmg
+            release/X2Local-macos-universal.zip
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev desktop-file-utils libgdk-pixbuf2.0-dev
+        shell: bash
+
+      - name: Build Linux
+        run: flutter build linux --release
+
+      - name: Install packaging tools
+        run: |
+          sudo apt-get install -y rpm ruby ruby-dev rubygems build-essential
+          sudo gem install fpm
+        shell: bash
+
+      - name: Create DEB and RPM packages
+        run: |
+          # Create directory structure for packaging
+          mkdir -p x2local-package/usr/bin
+          mkdir -p x2local-package/usr/lib
+          mkdir -p x2local-package/usr/share/applications
+          mkdir -p x2local-package/usr/share/icons/hicolor/16x16/apps
+          mkdir -p x2local-package/usr/share/icons/hicolor/22x22/apps
+          mkdir -p x2local-package/usr/share/icons/hicolor/24x24/apps
+          mkdir -p x2local-package/usr/share/icons/hicolor/32x32/apps
+          mkdir -p x2local-package/usr/share/icons/hicolor/48x48/apps
+          mkdir -p x2local-package/usr/share/icons/hicolor/64x64/apps
+          mkdir -p x2local-package/usr/share/icons/hicolor/128x128/apps
+          mkdir -p x2local-package/usr/share/icons/hicolor/256x256/apps
+          mkdir -p x2local-package/usr/share/icons/hicolor/512x512/apps
+          
+          # Copy application files
+          cp -r build/linux/x64/release/bundle/* x2local-package/usr/bin/
+          
+          # Copy desktop file
+          cp linux/runner/x2local.desktop x2local-package/usr/share/applications/
+          
+          # Copy icons
+          cp linux/assets/16x16.png x2local-package/usr/share/icons/hicolor/16x16/apps/x2local.png
+          cp linux/assets/22x22.png x2local-package/usr/share/icons/hicolor/22x22/apps/x2local.png
+          cp linux/assets/24x24.png x2local-package/usr/share/icons/hicolor/24x24/apps/x2local.png
+          cp linux/assets/32x32.png x2local-package/usr/share/icons/hicolor/32x32/apps/x2local.png
+          cp linux/assets/48x48.png x2local-package/usr/share/icons/hicolor/48x48/apps/x2local.png
+          cp linux/assets/64x64.png x2local-package/usr/share/icons/hicolor/64x64/apps/x2local.png
+          cp linux/assets/128x128.png x2local-package/usr/share/icons/hicolor/128x128/apps/x2local.png
+          cp linux/assets/256x256.png x2local-package/usr/share/icons/hicolor/256x256/apps/x2local.png
+          cp linux/assets/512x512.png x2local-package/usr/share/icons/hicolor/512x512/apps/x2local.png
+          
+          # Ensure release directory exists
+          mkdir -p release
+          
+          # Get version from pubspec.yaml
+          VERSION=$(grep '^version:' pubspec.yaml | cut -d ':' -f 2 | tr -d ' ')
+          
+          # Create DEB package
+          fpm -s dir -t deb \
+            -n x2local \
+            -v $VERSION \
+            --description "X2Local Application" \
+            --url "https://github.com/code3-dev/X2Local-GUI" \
+            --maintainer "Hossein Pira" \
+            --vendor "X2Local" \
+            --license "MIT" \
+            --category "Utility" \
+            --depends "libgtk-3-0" \
+            --depends "liblzma5" \
+            -C x2local-package \
+            --package release/x2local.deb \
+            .
+          
+          # Create RPM package
+          fpm -s dir -t rpm \
+            -n x2local \
+            -v $VERSION \
+            --description "X2Local" \
+            --url "https://github.com/code3-dev/X2Local-GUI" \
+            --maintainer "Hossein Pira" \
+            --vendor "X2Local" \
+            --license "MIT" \
+            --category "Applications/Utilities" \
+            --depends "gtk3" \
+            --depends "xz-libs" \
+            -C x2local-package \
+            --package release/x2local.rpm \
+            .
+        shell: bash
+
+      - name: Create Linux AppImage (Optional)
+        run: |
+          # Ensure release directory exists
+          mkdir -p release
+          
+          # Get version from pubspec.yaml
+          VERSION=$(grep '^version:' pubspec.yaml | cut -d ':' -f 2 | tr -d ' ')
+          echo "Building AppImage for version: $VERSION"
+          
+          # Download linuxdeploy tool
+          echo "Downloading linuxdeploy..."
+          wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          chmod +x linuxdeploy-x86_64.AppImage
+          
+          # Create AppDir structure
+          echo "Creating AppDir structure..."
+          mkdir -p x2local.AppDir/usr/bin
+          cp -r build/linux/x64/release/bundle/* x2local.AppDir/usr/bin/
+          
+          # Copy desktop file to AppDir
+          echo "Copying desktop file..."
+          cp linux/runner/x2local.desktop x2local.AppDir/x2local.desktop
+          
+          # Copy icon to AppDir root with correct name
+          echo "Copying icon..."
+          cp linux/assets/256x256.png x2local.AppDir/x2local.png
+          
+          # Make sure the executable is properly linked
+          chmod +x x2local.AppDir/usr/bin/x2local
+          
+          # List files for debugging
+          echo "AppDir contents:"
+          find x2local.AppDir -type f
+          
+          # Create AppImage
+          echo "Creating AppImage..."
+          OUTPUT=release/X2Local-$VERSION-linux.AppImage ./linuxdeploy-x86_64.AppImage \
+            --appdir x2local.AppDir \
+            --output appimage || {
+            echo "AppImage creation failed, continuing with other packages"
+            echo "Contents of release directory:"
+            ls -la release/ || echo "Release directory not found or empty"
+          }
+        shell: bash
+
+      - name: Package Linux build
+        run: |
+          mkdir -p release
+          # Create tar.gz archive of the Linux build
+          tar -czf release/X2Local-linux.tar.gz -C build/linux/x64/release bundle/
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-build
+          path: |
+            release/X2Local-linux.tar.gz
+            release/X2Local-*-linux.AppImage
+            release/x2local.deb
+            release/x2local.rpm
+
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Decode Keystore
+        run: |
+          echo "$KEY_STORE" | base64 -d > android/app/keystore.jks
+        shell: bash
+        env:
+          KEY_STORE: ${{ secrets.KEY_STORE }}
+
+      - name: Create keystore properties file
+        run: |
+          echo "storePassword=$KEY_STORE_PASSWORD" > android/key.properties
+          echo "keyPassword=$KEY_PASSWORD" >> android/key.properties
+          echo "keyAlias=$KEY_ALIAS" >> android/key.properties
+          echo "storeFile=keystore.jks" >> android/key.properties
+        shell: bash
+        env:
+          KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build universal APK
+        run: flutter build apk --release
+
+      - name: Build split APKs
+        run: flutter build apk --split-per-abi --release
+
+      - name: Rename APKs
+        run: |
+          mkdir -p release
+          cp build/app/outputs/flutter-apk/app-release.apk release/x2local-universal.apk
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk release/x2local-armeabi-v7a.apk
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk release/x2local-arm64-v8a.apk
+          cp build/app/outputs/flutter-apk/app-x86_64-release.apk release/x2local-x86_64.apk
+        shell: bash
+
+      - name: Upload Android artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-build
+          path: |
+            release/x2local-universal.apk
+            release/x2local-armeabi-v7a.apk
+            release/x2local-arm64-v8a.apk
+            release/x2local-x86_64.apk
+
+  build-web:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build Web
+        run: flutter build web --release
+
+      - name: Copy build/web content to web folder
+        run: |
+          # Remove existing web folder content except index.html and manifest.json
+          find web -mindepth 1 -maxdepth 1 ! -name 'index.html' ! -name 'manifest.json' -exec rm -rf {} +
+          # Copy build/web content to web folder
+          cp -r build/web/* web/
+
+      - name: Create Web ZIP
+        run: |
+          # Create release directory
+          mkdir -p release
+          # Create ZIP archive of the web build
+          cd web
+          zip -r ../release/X2Local-web.zip .
+
+      - name: Upload Web artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: release/X2Local-web.zip
+
+  release:
+    needs: [build-windows, build-macos, build-linux, build-android, build-web]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Windows artifacts (x64)
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-build-x64
+
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-build
+
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-build
+
+      - name: Download Android artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: android-build
+
+      - name: Download Web artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: web-build
+
+      - name: Get tag name
+        id: get_tag
+        run: |
+          if [[ $GITHUB_EVENT_NAME == 'workflow_dispatch' ]]; then
+            echo "TAG_NAME=${{ github.event.inputs.tag }}" >> $GITHUB_ENV
+          else
+            echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          fi
+          # Extract version from pubspec.yaml
+          VERSION=$(grep '^version:' pubspec.yaml | cut -d ':' -f 2 | tr -d ' ')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG_NAME }}
+          name: Release ${{ env.TAG_NAME }}
+          draft: false
+          prerelease: false
+          files: |
+            x2local-setup.exe
+            X2Local-windows-x64-portable.zip
+            X2Local-macos-universal.dmg
+            X2Local-macos-universal.zip
+            X2Local-linux.tar.gz
+            X2Local-*-linux.AppImage
+            x2local.deb
+            x2local.rpm
+            x2local-universal.apk
+            x2local-armeabi-v7a.apk
+            x2local-arm64-v8a.apk
+            x2local-x86_64.apk
+            X2Local-web.zip
+          body: |
+            ## X2Local Release ${{ env.TAG_NAME }}
+            
+            ### Important Note for Windows Users
+            
+            If you encounter any errors when installing or running X2Local on Windows, please install the Microsoft Visual C++ Redistributable 2015-2022 and then try installing or running X2Local again.
+            
+            You can download it from the official Microsoft website: [Microsoft Visual C++ Redistributable](https://docs.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist)
+            
+            ### Download
+            
+            | Platform | Architecture | Download |
+            |----------|-------------|----------|
+            | Windows  | x64 (Installer) | <a href="https://github.com/code3-dev/X2Local-GUI/releases/download/${{ env.TAG_NAME }}/x2local-setup.exe"><img src="https://img.shields.io/badge/Windows-Installer-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows Installer"></a> |
+            | Windows  | x64 (Portable ZIP) | <a href="https://github.com/code3-dev/X2Local-GUI/releases/download/${{ env.TAG_NAME }}/X2Local-windows-x64-portable.zip"><img src="https://img.shields.io/badge/Windows-x64--Portable--ZIP-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows x64 Portable ZIP"></a> |
+            | macOS    | Universal (.dmg) | <a href="https://github.com/code3-dev/X2Local-GUI/releases/download/${{ env.TAG_NAME }}/X2Local-macos-universal.dmg"><img src="https://img.shields.io/badge/macOS-Universal-000000?style=for-the-badge&logo=apple&logoColor=white" alt="macOS Universal DMG"></a> |
+            | macOS    | Universal (.zip) | <a href="https://github.com/code3-dev/X2Local-GUI/releases/download/${{ env.TAG_NAME }}/X2Local-macos-universal.zip"><img src="https://img.shields.io/badge/macOS-Universal-000000?style=for-the-badge&logo=apple&logoColor=white" alt="macOS Universal ZIP"></a> |
+            | Linux    | x64 (tar.gz) | <a href="https://github.com/code3-dev/X2Local-GUI/releases/download/${{ env.TAG_NAME }}/X2Local-linux.tar.gz"><img src="https://img.shields.io/badge/Linux-tar.gz-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Linux tar.gz"></a> |
+            | Linux    | x64 (AppImage) | <a href="https://github.com/code3-dev/X2Local-GUI/releases/download/${{ env.TAG_NAME }}/X2Local-${{ env.VERSION }}-linux.AppImage"><img src="https://img.shields.io/badge/Linux-AppImage-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Linux AppImage"></a> |
+            | Linux    | x64 (.deb) | <a href="https://github.com/code3-dev/X2Local-GUI/releases/download/${{ env.TAG_NAME }}/x2local.deb"><img src="https://img.shields.io/badge/Linux-.deb-FCC624?style=for-the-badge&logo=debian&logoColor=white" alt="Linux .deb"></a> |
+            | Linux    | x64 (.rpm) | <a href="https://github.com/code3-dev/X2Local-GUI/releases/download/${{ env.TAG_NAME }}/x2local.rpm"><img src="https://img.shields.io/badge/Linux-.rpm-FCC624?style=for-the-badge&logo=redhat&logoColor=white" alt="Linux .rpm"></a> |
+            | Android  | Universal | <a href="https://github.com/code3-dev/X2Local-GUI/releases/download/${{ env.TAG_NAME }}/x2local-universal.apk"><img src="https://img.shields.io/badge/Android-Universal-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android Universal"></a> |
+            | Android  | armeabi-v7a | <a href="https://github.com/code3-dev/X2Local-GUI/releases/download/${{ env.TAG_NAME }}/x2local-armeabi-v7a.apk"><img src="https://img.shields.io/badge/Android-armeabi--v7a-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android armeabi-v7a"></a> |
+            | Android  | arm64-v8a | <a href="https://github.com/code3-dev/X2Local-GUI/releases/download/${{ env.TAG_NAME }}/x2local-arm64-v8a.apk"><img src="https://img.shields.io/badge/Android-arm64--v8a-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android arm64-v8a"></a> |
+            | Android  | x86_64 | <a href="https://github.com/code3-dev/X2Local-GUI/releases/download/${{ env.TAG_NAME }}/x2local-x86_64.apk"><img src="https://img.shields.io/badge/Android-x86_64-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android x86_64"></a> |
+            | Web      | All browsers | <a href="https://github.com/code3-dev/X2Local-GUI/releases/download/${{ env.TAG_NAME }}/X2Local-web.zip"><img src="https://img.shields.io/badge/Web-ZIP-FFCA28?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Web ZIP"></a> |

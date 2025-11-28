@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:x2local/app/modules/home/controllers/home_controller.dart';
-import 'dart:io';
 
 class HomeView extends GetView<HomeController> {
   const HomeView({super.key});
@@ -610,7 +610,7 @@ class HomeView extends GetView<HomeController> {
               ),
               const SizedBox(height: 12),
               Text(
-                'File: ${controller.downloadedFilePath.value.split(Platform.isWindows ? '\\' : '/').last}',
+                'File: \${controller.downloadedFilePath.value.split(RegExp(r"[/\\\\\\\\]")).last}',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 16),
